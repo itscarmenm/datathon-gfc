@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from query_handler import obtener_medicacion, obtener_laboratorio, obtener_procedimientos, obtener_notas, obtener_evolucion, obtener_temperatura
 from utils import normalizar_texto, extraer_palabras_clave
+from api_client import obtener_respuesta_api  # Importar la función de la API
 
 paciente_actual = None  # Almacena el último paciente consultado
 
@@ -69,47 +70,27 @@ def detectar_categoria(pregunta):
             return categoria
     return None
 
-def extraer_fecha_hora(pregunta):
-    """Busca una fecha y hora en la pregunta."""
-    fecha = None
-    hora = None
 
-    # Buscar fechas en formato dd/mm/aaaa o aaaa-mm-dd
-    fecha_match = re.search(r'(\d{2}/\d{2}/\d{4})|(\d{4}-\d{2}-\d{2})', pregunta)
-    if fecha_match:
-        fecha = fecha_match.group(0)
-        fecha = datetime.strptime(fecha, "%d/%m/%Y").strftime("%Y-%m-%d") if "/" in fecha else fecha
-
-    # Buscar horas en formato hh:mm o hh:mm:ss
-    hora_match = re.search(r'(\d{1,2}:\d{2}(:\d{2})?)', pregunta)
-    if hora_match:
-        hora = hora_match.group(0) + (":00" if len(hora_match.group(0)) == 5 else "")  # Asegurar hh:mm:ss
-
-    return fecha, hora
 
 def responder_pregunta(pregunta, paciente_id, dataframes):
-    pregunta = normalizar_texto(pregunta)
-    categoria = detectar_categoria(pregunta)
-    fecha, hora = extraer_fecha_hora(pregunta)
+    pregunta = pregunta.lower()
+    palabras_clave = extraer_palabras_clave(pregunta)
 
-    if categoria == "medicacion":
+    # Revisar si la pregunta tiene que ver con los datos locales
+    if any(word in palabras_clave for word in ["medicación", "medicinas", "fármacos", "tratamiento"]):
         respuesta = obtener_medicacion(dataframes, paciente_id)
-    elif categoria == "laboratorio":
+    elif any(word in palabras_clave for word in ["laboratorio", "análisis", "pruebas"]):
         respuesta = obtener_laboratorio(dataframes, paciente_id)
-    elif categoria == "procedimientos":
+    elif any(word in palabras_clave for word in ["procedimientos", "intervenciones", "cirugías"]):
         respuesta = obtener_procedimientos(dataframes, paciente_id)
-    elif categoria == "notas":
+    elif any(word in palabras_clave for word in ["notas", "historial", "registros"]):
         respuesta = obtener_notas(dataframes, paciente_id)
-    elif categoria == "evolucion":
+    elif any(word in palabras_clave for word in ["evolución", "estado", "seguimiento"]):
         respuesta = obtener_evolucion(dataframes, paciente_id)
-    elif categoria == "temperatura":
-        if fecha:
-            respuesta = obtener_temperatura(dataframes, paciente_id, fecha, hora)
-        else:
-            respuesta = "Por favor, indica una fecha para buscar la temperatura."
     else:
-        respuesta = "No tengo información sobre eso."
-
+        # Si no encuentras la respuesta en los datos locales, haz la llamada a la API
+        respuesta = obtener_respuesta_api(pregunta)  # Aquí hace la consulta a la API
+    
+    memoria.append({"pregunta": pregunta, "respuesta": respuesta})  # Guardar en memoria
     return respuesta
-
 
