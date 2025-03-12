@@ -3,12 +3,12 @@ import pandas as pd
 
 def cargar_datos():
     file_paths = {
-        "medicacion": "resumen_medicacion.csv",
-        "lab": "resumen_lab_iniciales.csv",
-        "notas": "resumen_notas.csv",
-        "pacientes": "resumen_pacientes.csv",
-        "procedimientos": "resumen_procedimientos.csv",
-        "evolucion": "resumen_evolucion.csv"
+        "medicacion": "csvs/resumen_medicacion.csv",
+        "lab": "csvs/resumen_lab_iniciales.csv",
+        "notas": "csvs/resumen_notas.csv",
+        "pacientes": "csvs/resumen_pacientes.csv",
+        "procedimientos": "csvs/resumen_procedimientos.csv",
+        "evolucion": "csvs/resumen_evolucion.csv"
     }
     
     dataframes = {}
