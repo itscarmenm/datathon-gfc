@@ -1,10 +1,8 @@
-# conversation.py - Manejo de memoria y contexto
 import spacy
 import re
 from datetime import datetime
 from query_handler import obtener_medicacion, obtener_laboratorio, obtener_procedimientos, obtener_notas, obtener_evolucion, obtener_temperatura
-from utils import normalizar_texto, extraer_palabras_clave
-from api_client import obtener_respuesta_api  # Importar la función de la API
+from utils import normalizar_texto, extraer_palabras_clave, extraer_fecha_hora
 
 paciente_actual = None  # Almacena el último paciente consultado
 
@@ -36,7 +34,7 @@ def responder_pregunta(pregunta, paciente_id=None, dataframes=None):
         respuesta = obtener_notas(dataframes, paciente_id)
     elif categoria == "evolucion":
         respuesta = obtener_evolucion(dataframes, paciente_id)
-    elif "temperatura" in categoria:  # Verificar que se está pidiendo temperatura
+    elif "temperatura" in categoria:
         if fecha:
             respuesta = obtener_temperatura(dataframes, paciente_id, fecha, hora)
         else:
@@ -44,6 +42,7 @@ def responder_pregunta(pregunta, paciente_id=None, dataframes=None):
     else:
         respuesta = "No tengo información sobre eso."
 
+    memoria.append({"pregunta": pregunta, "respuesta": respuesta})  # Guardar en memoria
     return respuesta
 
 
@@ -69,28 +68,3 @@ def detectar_categoria(pregunta):
         if any(palabra in palabras_clave for palabra in palabras):
             return categoria
     return None
-
-
-
-def responder_pregunta(pregunta, paciente_id, dataframes):
-    pregunta = pregunta.lower()
-    palabras_clave = extraer_palabras_clave(pregunta)
-
-    # Revisar si la pregunta tiene que ver con los datos locales
-    if any(word in palabras_clave for word in ["medicación", "medicinas", "fármacos", "tratamiento"]):
-        respuesta = obtener_medicacion(dataframes, paciente_id)
-    elif any(word in palabras_clave for word in ["laboratorio", "análisis", "pruebas"]):
-        respuesta = obtener_laboratorio(dataframes, paciente_id)
-    elif any(word in palabras_clave for word in ["procedimientos", "intervenciones", "cirugías"]):
-        respuesta = obtener_procedimientos(dataframes, paciente_id)
-    elif any(word in palabras_clave for word in ["notas", "historial", "registros"]):
-        respuesta = obtener_notas(dataframes, paciente_id)
-    elif any(word in palabras_clave for word in ["evolución", "estado", "seguimiento"]):
-        respuesta = obtener_evolucion(dataframes, paciente_id)
-    else:
-        # Si no encuentras la respuesta en los datos locales, haz la llamada a la API
-        respuesta = obtener_respuesta_api(pregunta)  # Aquí hace la consulta a la API
-    
-    memoria.append({"pregunta": pregunta, "respuesta": respuesta})  # Guardar en memoria
-    return respuesta
-
