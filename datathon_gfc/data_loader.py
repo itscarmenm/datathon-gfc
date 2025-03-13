@@ -1,4 +1,3 @@
-# data_loader.py - Cargar datos desde CSV
 import pandas as pd
 
 def cargar_datos():
@@ -12,13 +11,22 @@ def cargar_datos():
     }
     
     dataframes = {}
+    pacientes_dict = {}  # Diccionario para mapear nombres a IDs
+
     for key, path in file_paths.items():
         try:
             df = pd.read_csv(path, encoding="utf-8", on_bad_lines="skip")
             df.columns = df.columns.str.strip()
             dataframes[key] = df
+
+            # Guardamos la relación Nombre - PacienteID si es el CSV de pacientes
+            if key == "pacientes":
+                for _, row in df.iterrows():
+                    nombre = row["Nombre"].strip().lower()  # Normalizamos el nombre
+                    pacientes_dict[nombre] = row["PacienteID"]
+
         except Exception as e:
             print(f"Error al cargar {key}: {e}")
-    
+
     print("Datos cargados correctamente.")
-    return dataframes
+    return dataframes, pacientes_dict
