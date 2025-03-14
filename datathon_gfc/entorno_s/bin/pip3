@@ -1,4 +1,4 @@
-#!/Users/carmenmaria/Documents/datathon_gfc/entorno_s/bin/python3
+#!/Users/carmenmaria/Documents/datathon-gfc/datathon_gfc/entorno_s/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys
