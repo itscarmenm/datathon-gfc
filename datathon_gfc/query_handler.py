@@ -73,3 +73,17 @@ def obtener_temperatura(dataframes, paciente_id, fecha, hora=None):
         registros = registros[registros["Hora"] == hora]
     
     return registros["Temperatura"].to_string(index=False) if not registros.empty else "No hay registros de temperatura a esa hora."
+
+def obtener_resumen_medicacion(dataframes, paciente_id):
+    medicacion = obtener_medicacion(dataframes, paciente_id)
+    
+    if medicacion is None or medicacion.empty:
+        return "No hay medicación registrada para este paciente."
+    
+    lista_medicacion = [
+        f"{fila['Medicamento']} ({fila['Dosis']} mg), vía {fila['Via']}"
+        for _, fila in medicacion.iterrows()
+    ]
+
+    resumen = "El paciente está recibiendo la siguiente medicación: " + "; ".join(lista_medicacion) + "."
+    return resumen

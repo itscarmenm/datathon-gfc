@@ -65,9 +65,24 @@ def detectar_categoria(pregunta):
     return None
 
 def formatear_medicacion(df_medicacion):
+    """Genera un resumen narrativo de la medicación del paciente."""
+    if df_medicacion.empty:
+        return "No hay medicación registrada para este paciente."
+
+    # Empezamos el resumen con una introducción.
+    resumen = "El paciente está tomando la siguiente medicación: "
+
+    # Agregamos los medicamentos en formato narrativo
     tratamientos = []
     for _, row in df_medicacion.iterrows():
-        tratamiento = f"{row['Medicamento']} {row['Dosis']} mg por {row['Via']}"
+        # Formato más narrativo
+        tratamiento = f"{row['Medicamento']} de {row['Dosis']} mg, administrado por vía {row['Via']}"
         tratamientos.append(tratamiento)
-    
-    return "; ".join(tratamientos)
+
+    # Usamos 'y' para unir el último medicamento con los anteriores, si hay más de uno
+    if len(tratamientos) > 1:
+        resumen += ", y ".join(tratamientos[:-1]) + " y " + tratamientos[-1] + "."
+    else:
+        resumen += tratamientos[0] + "."
+
+    return resumen
