@@ -1,4 +1,45 @@
 import pandas as pd
+import spacy
+
+nlp = spacy.load("es_core_news_sm")
+
+def generar_resumen_spacy(notas_paciente):
+    """Genera un resumen útil de las notas médicas de un paciente usando palabras clave en lugar de entidades de spaCy."""
+    if not notas_paciente:
+        return "No hay notas médicas registradas."
+
+    texto_completo = " ".join(notas_paciente)
+    doc = nlp(texto_completo)
+
+    # Listas de palabras clave (puedes ampliarlas)
+    palabras_sintomas = ["fiebre", "dolor", "cansancio", "mareo"]
+    palabras_diagnostico = ["diabetes", "hipertensión", "infección", "asma"]
+    palabras_tratamiento = ["paracetamol", "ibuprofeno", "reposo", "fisioterapia"]
+
+    sintomas = [token.text for token in doc if token.text.lower() in palabras_sintomas]
+    diagnosticos = [token.text for token in doc if token.text.lower() in palabras_diagnostico]
+    tratamientos = [token.text for token in doc if token.text.lower() in palabras_tratamiento]
+
+    resumen = "Resumen de notas médicas:\n"
+    if sintomas:
+        resumen += f"- **Síntomas reportados:** {', '.join(set(sintomas))}\n"
+    if diagnosticos:
+        resumen += f"- **Diagnósticos:** {', '.join(set(diagnosticos))}\n"
+    if tratamientos:
+        resumen += f"- **Tratamientos indicados:** {', '.join(set(tratamientos))}\n"
+
+    if not (sintomas or diagnosticos or tratamientos):
+        resumen += "No se encontraron detalles específicos en las notas."
+
+    return resumen
+
+
+def obtener_notas(dataframes, paciente_id):
+    df = dataframes["notas"]
+    notas_paciente = df[df["PacienteID"] == paciente_id]["Nota"].tolist()
+    
+    return generar_resumen_spacy(notas_paciente) if notas_paciente else "No hay notas médicas registradas."
+
 
 def obtener_medicacion(dataframes, paciente_id):
     df = dataframes["medicacion"]
@@ -15,10 +56,6 @@ def obtener_procedimientos(dataframes, paciente_id):
     proc = df[df["PacienteID"] == paciente_id]
     return proc.to_string(index=False) if not proc.empty else "No hay procedimientos registrados."
 
-def obtener_notas(dataframes, paciente_id):
-    df = dataframes["notas"]
-    notas = df[df["PacienteID"] == paciente_id]
-    return notas.to_string(index=False) if not notas.empty else "No hay notas médicas."
 
 def obtener_evolucion(dataframes, paciente_id):
     df = dataframes["evolucion"]

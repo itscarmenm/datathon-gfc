@@ -24,6 +24,7 @@ def responder_pregunta(pregunta, paciente_id, dataframes):
     categoria = detectar_categoria(pregunta)
     fecha, hora = extraer_fecha_hora(pregunta)
 
+
     respuesta = "No tengo información sobre eso."
 
     if categoria == "medicacion":
