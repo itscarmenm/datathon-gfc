@@ -44,6 +44,8 @@ source myenv/bin/activate
 ```powershell
 python -m venv mi_entorno_w
 .\mi_entorno_w\Scripts\Activate.ps1
+.\entornAlma\Scripts\Activate.ps1
+
 ```
 
 ### Instalación de Dependencias

@@ -1,3 +1,5 @@
+#- `data_loader.py`: Carga los datos desde los archivos CSV.
+
 import pandas as pd
 
 def cargar_datos():

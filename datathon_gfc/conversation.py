@@ -1,3 +1,6 @@
+#`conversation.py`: Interpreta la pregunta y genera una respuesta.
+
+
 import spacy
 import re
 from datetime import datetime

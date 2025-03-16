@@ -1,3 +1,6 @@
+#- `api_client.py`: conecta con la API
+
+
 import openai
 
 client = openai.OpenAI(

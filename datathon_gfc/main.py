@@ -1,3 +1,5 @@
+#- `main.py`: Archivo principal que gestiona la interacción y coordina los módulos anteriores.
+
 if __name__ == "__main__":
     from data_loader import cargar_datos
     from conversation import responder_pregunta

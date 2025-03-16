@@ -1,3 +1,5 @@
+#- `query_handler.py`: Busca en los datos según la pregunta del usuario.
+
 import pandas as pd
 import spacy
 
