@@ -7,7 +7,6 @@ client = openai.OpenAI(
     api_key="sk-8BMaX7HOyMAcqcZdnjY7IQ",
     base_url="https://litellm.dccp.pbu.dedalus.com") # set proxy to base_url
 
-
 def obtener_respuesta_api(contexto):
     """Envía la información a la API para obtener una respuesta más natural y explicativa."""
     response = client.chat.completions.create(
@@ -16,4 +15,4 @@ def obtener_respuesta_api(contexto):
             {"role": "user", "content": contexto}
         ]
     )
-    return response.choices[0].message["content"]
+    return response.choices[0].message.content

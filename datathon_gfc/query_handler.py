@@ -39,7 +39,7 @@ def generar_resumen_spacy(notas_paciente):
 def obtener_notas(dataframes, paciente_id):
     df = dataframes["notas"]
     notas_paciente = df[df["PacienteID"] == paciente_id]["Nota"].tolist()
-    
+
     return generar_resumen_spacy(notas_paciente) if notas_paciente else "No hay notas médicas registradas."
 
 
@@ -73,15 +73,15 @@ def obtener_temperatura(dataframes, paciente_id, fecha, hora=None):
 
     if hora:
         registros = registros[registros["Hora"] == hora]
-    
+
     return registros["Temperatura"].to_string(index=False) if not registros.empty else "No hay registros de temperatura a esa hora."
 
 def obtener_resumen_medicacion(dataframes, paciente_id):
     medicacion = obtener_medicacion(dataframes, paciente_id)
-    
+
     if medicacion is None or medicacion.empty:
         return "No hay medicación registrada para este paciente."
-    
+
     lista_medicacion = [
         f"{fila['Medicamento']} ({fila['Dosis']} mg), vía {fila['Via']}"
         for _, fila in medicacion.iterrows()
@@ -89,3 +89,13 @@ def obtener_resumen_medicacion(dataframes, paciente_id):
 
     resumen = "El paciente está recibiendo la siguiente medicación: " + "; ".join(lista_medicacion) + "."
     return resumen
+
+def obtener_datos_paciente_evolucion(dataframes, paciente_id):
+    """Obtiene todos los datos de evolución de un paciente."""
+    df = dataframes.get("evolucion")
+    if df is not None and not df.empty:
+        datos_paciente = df[df["PacienteID"] == paciente_id]
+        if not datos_paciente.empty:
+            # Formatear los datos para que sean legibles para la IA
+            return datos_paciente.to_string(index=False)
+    return None
