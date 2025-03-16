@@ -1,19 +1,18 @@
 #- `query_handler.py`: Busca en los datos según la pregunta del usuario.
-
 import pandas as pd
 import spacy
+from api_client import obtener_respuesta_api  # Importa la función de la API
 
 nlp = spacy.load("es_core_news_sm")
 
 def generar_resumen_spacy(notas_paciente):
-    """Genera un resumen útil de las notas médicas de un paciente usando palabras clave en lugar de entidades de spaCy."""
+    """Genera un resumen útil de las notas médicas de un paciente usando palabras clave."""
     if not notas_paciente:
-        return "No hay notas médicas registradas."
+        return None  # Devuelve None si no hay notas
 
     texto_completo = " ".join(notas_paciente)
     doc = nlp(texto_completo)
 
-    # Listas de palabras clave (puedes ampliarlas)
     palabras_sintomas = ["fiebre", "dolor", "cansancio", "mareo"]
     palabras_diagnostico = ["diabetes", "hipertensión", "infección", "asma"]
     palabras_tratamiento = ["paracetamol", "ibuprofeno", "reposo", "fisioterapia"]
@@ -22,26 +21,31 @@ def generar_resumen_spacy(notas_paciente):
     diagnosticos = [token.text for token in doc if token.text.lower() in palabras_diagnostico]
     tratamientos = [token.text for token in doc if token.text.lower() in palabras_tratamiento]
 
-    resumen = "Resumen de notas médicas:\n"
+    resumen_spacy = ""
     if sintomas:
-        resumen += f"- **Síntomas reportados:** {', '.join(set(sintomas))}\n"
+        resumen_spacy += f"- **Síntomas reportados:** {', '.join(set(sintomas))}\n"
     if diagnosticos:
-        resumen += f"- **Diagnósticos:** {', '.join(set(diagnosticos))}\n"
+        resumen_spacy += f"- **Diagnósticos:** {', '.join(set(diagnosticos))}\n"
     if tratamientos:
-        resumen += f"- **Tratamientos indicados:** {', '.join(set(tratamientos))}\n"
+        resumen_spacy += f"- **Tratamientos indicados:** {', '.join(set(tratamientos))}\n"
 
-    if not (sintomas or diagnosticos or tratamientos):
-        resumen += "No se encontraron detalles específicos en las notas."
+    if not resumen_spacy:
+        return None
 
-    return resumen
-
+    return resumen_spacy
 
 def obtener_notas(dataframes, paciente_id):
     df = dataframes["notas"]
     notas_paciente = df[df["PacienteID"] == paciente_id]["Nota"].tolist()
 
-    return generar_resumen_spacy(notas_paciente) if notas_paciente else "No hay notas médicas registradas."
+    resumen_spacy = generar_resumen_spacy(notas_paciente)
 
+    if resumen_spacy:
+        pregunta_medico = "¿Cuáles son sus notas clínicas?" # Reconstruimos la pregunta original
+        contexto_ia = f"El médico preguntó: '{pregunta_medico}'. Basado en las siguientes notas clínicas resumidas:\n{resumen_spacy}\n\nProporciona un resumen redactado y coherente de las notas clínicas del paciente."
+        return obtener_respuesta_api(contexto_ia)
+    else:
+        return "No hay notas médicas registradas."
 
 def obtener_medicacion(dataframes, paciente_id):
     df = dataframes["medicacion"]
@@ -57,7 +61,6 @@ def obtener_procedimientos(dataframes, paciente_id):
     df = dataframes["procedimientos"]
     proc = df[df["PacienteID"] == paciente_id]
     return proc.to_string(index=False) if not proc.empty else "No hay procedimientos registrados."
-
 
 def obtener_evolucion(dataframes, paciente_id):
     df = dataframes["evolucion"]
@@ -90,12 +93,29 @@ def obtener_resumen_medicacion(dataframes, paciente_id):
     resumen = "El paciente está recibiendo la siguiente medicación: " + "; ".join(lista_medicacion) + "."
     return resumen
 
+def obtener_datos_paciente_lab(dataframes, paciente_id):
+    """Obtiene todos los datos de laboratorio iniciales de un paciente."""
+    df = dataframes.get("lab")
+    if df is not None and not df.empty:
+        datos_paciente = df[df["PacienteID"] == paciente_id]
+        if not datos_paciente.empty:
+            return datos_paciente.to_string(index=False)
+    return None
+
+def obtener_datos_paciente_notas(dataframes, paciente_id):
+    """Obtiene todas las notas de un paciente."""
+    df = dataframes.get("notas")
+    if df is not None and not df.empty:
+        notas_paciente = df[df["PacienteID"] == paciente_id]["Nota"].tolist()
+        if notas_paciente:
+            return "\n".join(notas_paciente) # Unir las notas en un string
+    return None
+
 def obtener_datos_paciente_evolucion(dataframes, paciente_id):
     """Obtiene todos los datos de evolución de un paciente."""
     df = dataframes.get("evolucion")
     if df is not None and not df.empty:
         datos_paciente = df[df["PacienteID"] == paciente_id]
         if not datos_paciente.empty:
-            # Formatear los datos para que sean legibles para la IA
             return datos_paciente.to_string(index=False)
     return None

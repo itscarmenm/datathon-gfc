@@ -1,11 +1,12 @@
 #`conversation.py`: Interpreta la pregunta y genera una respuesta.
+
 import spacy
 import re
 from datetime import datetime
 from query_handler import (
     obtener_medicacion, obtener_laboratorio, obtener_procedimientos,
     obtener_notas, obtener_evolucion, obtener_temperatura,
-    obtener_datos_paciente_evolucion  # Nueva función
+    obtener_datos_paciente_evolucion, obtener_datos_paciente_lab, obtener_datos_paciente_notas
 )
 from utils import normalizar_texto, extraer_palabras_clave, extraer_fecha_hora
 from api_client import obtener_respuesta_api
@@ -15,16 +16,18 @@ memoria = []  # Lista para almacenar la conversación
 
 SINONIMOS = {
     "medicacion": ["medicacion", "medicación", "medicinas", "fármacos", "tratamiento", "receta"],
-    "laboratorio": ["laboratorio", "análisis", "pruebas", "exámenes"],
+    "laboratorio": ["laboratorio", "análisis", "pruebas", "exámenes", "laboratorios iniciales", "lab"],
     "procedimientos": ["procedimientos", "intervenciones", "cirugías", "operaciones"],
-    "notas": ["notas", "historial", "registros", "comentarios"],
-    "evolucion_resumen": ["como esta el paciente", "cual es la evolucion de", "hazme un resumen del estado de",
+    "notas": ["nota", "notas", "historial", "registros", "comentarios", "notas clínicas", "clínica", "anotaciones", "clinica"], 
+    "evolucion_resumen": ["como esta paciente", "cual evolucion", "hazme resumen estado",
                           "resumen evolucion", "estado evolucion", "evolucion paciente", "resumen paciente",
-                          "evolucion de", "resumen de la evolucion",
-                          "evolucion", "resumen", "estado"], # Palabras individuales IMPORTANTES
+                          "evolucion", "resumen", "estado",
+                          "resumen completo", "paciente completo", "estado general",
+                          "resumen general", "informacion paciente"],
     "temperatura": ["temperatura", "fiebre", "calor", "termómetro"]
 }
 
+# ... (resto del archivo conversation.py sin cambios)
 def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
     pregunta = normalizar_texto(pregunta)
     categoria = detectar_categoria(pregunta)
@@ -75,8 +78,9 @@ def detectar_categoria(pregunta):
     palabras_clave = extraer_palabras_clave(pregunta)
 
     for categoria, palabras in SINONIMOS.items():
-        if any(palabra in palabras_clave for palabra in palabras):
-            return categoria
+        for palabra_sinonimo in palabras:
+            if palabra_sinonimo in palabras_clave:
+                return categoria
     return None
 
 def formatear_medicacion(df_medicacion):
