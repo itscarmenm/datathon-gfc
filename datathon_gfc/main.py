@@ -1,10 +1,10 @@
 #- `main.py`: Archivo principal que gestiona la interacción y coordina los módulos anteriores.
 
 if __name__ == "__main__":
-    from data_loader import cargar_datos
+    from data_loader import cargar_datos, normalizar_nombre
     from conversation import responder_pregunta
 
-    dataframes, pacientes_dict = cargar_datos()  # Cargamos los datos
+    dataframes, pacientes_dict, nombres_originales = cargar_datos()  # Cargamos los datos
 
     nombre_paciente_actual = None
     paciente_id_actual = None
@@ -26,17 +26,17 @@ if __name__ == "__main__":
         if nombre_paciente_actual is None:
             nombre_paciente = input("Ingrese el nombre y apellidos del paciente: ").strip().lower()
 
-            paciente_id = pacientes_dict.get(nombre_paciente)
+            # Normalizar el nombre ingresado antes de buscarlo
+            nombre_paciente_normalizado = normalizar_nombre(nombre_paciente)
+            
+            paciente_id = pacientes_dict.get(nombre_paciente_normalizado)
             if not paciente_id:
                 print("Asistente IA: No se encontró un paciente con ese nombre. Inténtelo de nuevo.")
                 continue
             else:
-                nombre_paciente_actual = nombre_paciente
+                nombre_paciente_actual = nombres_originales.get(paciente_id, nombre_paciente)
                 paciente_id_actual = paciente_id
-        else:
-            # Ya hay un paciente seleccionado, asumimos que la pregunta se refiere a él
-            pass
-
+        
         if paciente_id_actual:
             respuesta = responder_pregunta(pregunta, paciente_id_actual, dataframes, pacientes_dict)
             print(f"Asistente IA: {respuesta}")

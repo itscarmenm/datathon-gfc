@@ -1,6 +1,7 @@
 #- `data_loader.py`: Carga los datos desde los archivos CSV.
 
 import pandas as pd
+from conversation import normalizar_nombre 
 
 def cargar_datos():
     file_paths = {
@@ -14,6 +15,7 @@ def cargar_datos():
     
     dataframes = {}
     pacientes_dict = {}  # Diccionario para mapear nombres a IDs
+    nombres_originales = {}
 
     for key, path in file_paths.items():
         try:
@@ -24,11 +26,14 @@ def cargar_datos():
             # Guardamos la relación Nombre - PacienteID si es el CSV de pacientes
             if key == "pacientes":
                 for _, row in df.iterrows():
-                    nombre = row["Nombre"].strip().lower()  # Normalizamos el nombre
-                    pacientes_dict[nombre] = row["PacienteID"]
+                    nombre_original = row["Nombre"].strip()
+                    nombre_normalizado = normalizar_nombre(nombre_original)
+
+                    pacientes_dict[nombre_normalizado] = row["PacienteID"]
+                    nombres_originales[row["PacienteID"]] = nombre_original
 
         except Exception as e:
             print(f"Error al cargar {key}: {e}")
 
     print("Datos cargados correctamente.")
-    return dataframes, pacientes_dict
+    return dataframes, pacientes_dict, nombres_originales

@@ -2,6 +2,7 @@
 
 import spacy
 import re
+import unicodedata
 from datetime import datetime
 from query_handler import (
     obtener_medicacion, obtener_laboratorio, obtener_procedimientos,
@@ -30,6 +31,13 @@ SINONIMOS = {
 # ... (resto del archivo conversation.py sin cambios)
 def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
     pregunta = normalizar_texto(pregunta)
+
+    if isinstance(paciente_id, str):  
+        paciente_id = obtener_id_paciente_por_nombre(paciente_id, pacientes_dict)
+    
+    if paciente_id is None:
+        return "No se encontró el paciente en la base de datos."
+
     categoria = detectar_categoria(pregunta)
     fecha, hora = extraer_fecha_hora(pregunta)
     nombre_paciente = obtener_nombre_paciente_por_id(paciente_id, pacientes_dict)
@@ -106,9 +114,25 @@ def formatear_medicacion(df_medicacion):
 
     return resumen
 
-def obtener_nombre_paciente_por_id(paciente_id, pacientes_dict):
-    """Obtiene el nombre del paciente a partir del ID."""
-    for nombre, id_paciente in pacientes_dict.items():
-        if id_paciente == paciente_id:
-            return nombre.title() # Devolver el nombre con la primera letra en mayúscula
-    return "Paciente Desconocido"
+
+
+def normalizar_nombre(nombre):
+    # Convertir a minúsculas y eliminar tildes
+    nombre = nombre.lower()
+    nombre = ''.join(
+        c for c in unicodedata.normalize('NFD', nombre)
+        if unicodedata.category(c) != 'Mn'
+    )
+    return nombre.strip()
+
+def obtener_id_paciente_por_nombre(nombre_ingresado, pacientes_dict):
+    """Busca un paciente sin importar mayúsculas, minúsculas ni tildes."""
+    nombre_ingresado = normalizar_nombre(nombre_ingresado)
+
+    return pacientes_dict.get(nombre_ingresado, None)  # Retorna el ID o None si no lo encuentra
+
+def obtener_nombre_paciente_por_id(paciente_id, nombres_originales):
+    """Obtiene el nombre original del paciente a partir de su ID."""
+    return nombres_originales.get(paciente_id, "Paciente Desconocido")
+
+
