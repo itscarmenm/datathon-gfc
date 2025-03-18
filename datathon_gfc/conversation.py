@@ -48,7 +48,8 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
     if categoria == "medicacion":
         datos_medicacion = obtener_medicacion(dataframes, paciente_id)
         if datos_medicacion is not None:  # Verifica que no sea None
-            respuesta = formatear_medicacion(datos_medicacion)
+            contexto_ia = f"El paciente {nombre_paciente} tiene la siguiente medicación registrada:\n{datos_medicacion}\n\nGenera un resumen narrativo explicando qué medicamentos toma y para qué podrían servir."
+            respuesta = obtener_respuesta_api(contexto_ia)
         else:
             respuesta = "No hay información de medicación para este paciente."
 
@@ -91,30 +92,6 @@ def detectar_categoria(pregunta):
                 return categoria
     return None
 
-def formatear_medicacion(df_medicacion):
-    """Genera un resumen narrativo de la medicación del paciente."""
-    if df_medicacion.empty:
-        return "No hay medicación registrada para este paciente."
-
-    # Empezamos el resumen con una introducción.
-    resumen = "El paciente está tomando la siguiente medicación: "
-
-    # Agregamos los medicamentos en formato narrativo
-    tratamientos = []
-    for _, row in df_medicacion.iterrows():
-        # Formato más narrativo
-        tratamiento = f"{row['Medicamento']} de {row['Dosis']} mg, administrado por vía {row['Via']}"
-        tratamientos.append(tratamiento)
-
-    # Usamos 'y' para unir el último medicamento con los anteriores, si hay más de uno
-    if len(tratamientos) > 1:
-        resumen += ", y ".join(tratamientos[:-1]) + " y " + tratamientos[-1] + "."
-    else:
-        resumen += tratamientos[0] + "."
-
-    return resumen
-
-
 
 def normalizar_nombre(nombre):
     # Convertir a minúsculas y eliminar tildes
@@ -133,6 +110,6 @@ def obtener_id_paciente_por_nombre(nombre_ingresado, pacientes_dict):
 
 def obtener_nombre_paciente_por_id(paciente_id, nombres_originales):
     """Obtiene el nombre original del paciente a partir de su ID."""
-    return nombres_originales.get(paciente_id, "Paciente Desconocido")
+    return nombres_originales.get(paciente_id)
 
 
