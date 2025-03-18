@@ -91,7 +91,7 @@ class AsistenteApp(ft.Column):
 
         # Mostrar mensaje de "Cargando..."
         loading_msg = ft.Container(
-            content=ft.Text("Asistente IA está procesando...", color=ft.Colors.GREY_500, italic=True),
+            content=ft.Text("Florence está pensando...", color=ft.Colors.GREY_500, italic=True),
             alignment=ft.alignment.center_left,
             bgcolor=ft.Colors.GREY_300,
             padding=10,
@@ -125,7 +125,7 @@ class AsistenteApp(ft.Column):
         self.chat_display.update()
 
         # Agregar respuesta de la IA
-        self.add_message(f"Asistente IA: {answer}", "ia")
+        self.add_message(f"Florence {answer}", "ia")
 
         # Limpiar la caja de texto
         self.user_input.value = ""
@@ -133,7 +133,7 @@ class AsistenteApp(ft.Column):
 
 
 def main(page: ft.Page):
-    page.title = "Asistente Médico IA"
+    page.title = "Florence - Asistente Virtual Médico"
     page.bgcolor = ft.Colors.BLUE_GREY_900
 
     app = AsistenteApp()
