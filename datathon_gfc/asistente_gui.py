@@ -2,17 +2,17 @@ import flet as ft
 from data_loader import cargar_datos
 from conversation import responder_pregunta, normalizar_nombre
 
-
 class AsistenteApp(ft.Column):
     def __init__(self):
         super().__init__()
         self.dataframes, self.pacientes_dict, self.nombres_originales = cargar_datos()
+        # Variable para guardar el paciente actual de la conversación
+        self.current_patient = None
 
         # Área de chat con desplazamiento habilitado manualmente
         self.chat_display = ft.ListView(
             expand=True, spacing=10, padding=10, auto_scroll=True
         )
-
 
         # Caja de texto estilizada
         self.user_input = ft.TextField(
@@ -44,8 +44,22 @@ class AsistenteApp(ft.Column):
             ft.Row(controls=[self.user_input, self.send_button]),
         ]
 
+    def extraer_nombre_paciente(self, question: str):
+        """
+        Intenta extraer el nombre del paciente asumiendo que se encuentran
+        en las dos últimas palabras de la pregunta. Si se encuentra y es válido,
+        se devuelve el nombre normalizado; de lo contrario, se retorna None.
+        """
+        palabras = question.split()
+        if len(palabras) >= 2:
+            candidato = palabras[-2] + " " + palabras[-1]
+            candidato_norm = normalizar_nombre(candidato)
+            if candidato_norm in self.pacientes_dict:
+                return candidato_norm
+        return None
+
     def add_message(self, message, sender):
-        """ Agrega mensajes al chat, alineados según quién lo envía. """
+        """Agrega mensajes al chat, alineados según quién lo envía."""
         if sender == "medico":
             msg = ft.Container(
                 content=ft.Text(message, color=ft.Colors.WHITE, size=14),
@@ -87,12 +101,24 @@ class AsistenteApp(ft.Column):
         self.chat_display.controls.append(loading_msg)
         self.chat_display.update()
 
-        # Detectar paciente y procesar respuesta
-        nombre_paciente = question.split()[-2] + " " + question.split()[-1]
-        nombre_paciente_normalizado = normalizar_nombre(nombre_paciente)
-        paciente_id = self.pacientes_dict.get(nombre_paciente_normalizado)
+        # Intentar extraer un nuevo nombre de paciente de la pregunta
+        nombre_detectado = self.extraer_nombre_paciente(question)
+        if nombre_detectado:
+            # Se actualiza el paciente actual
+            self.current_patient = nombre_detectado
+            paciente_id = self.pacientes_dict[nombre_detectado]
+        else:
+            # Si no se detecta un nombre, se usa el paciente actual del contexto
+            if self.current_patient:
+                paciente_id = self.pacientes_dict[self.current_patient]
+            else:
+                paciente_id = None
 
-        answer = responder_pregunta(question, paciente_id, self.dataframes, self.pacientes_dict) if paciente_id else f"No se encontró un paciente con el nombre '{nombre_paciente}'."
+        # Procesar respuesta basándonos en el paciente identificado
+        if paciente_id:
+            answer = responder_pregunta(question, paciente_id, self.dataframes, self.pacientes_dict)
+        else:
+            answer = "No se encontró un paciente en el contexto. Por favor, menciona el nombre del paciente (por ejemplo, 'juan perez')."
 
         # Eliminar el mensaje de "Cargando..."
         self.chat_display.controls.remove(loading_msg)
@@ -115,7 +141,7 @@ def main(page: ft.Page):
     page.add(app)
 
     # Mensaje inicial
-    app.add_message("Bienvenidx a Florence, tu asistente virtual médica. Te ayudaré con la información de los pacientes que necesites.", "ia")
+    app.add_message("Bienvenidx a Florence, tu asistente virtual médica. Puedes consultar datos de un paciente mencionando su nombre, y luego seguir haciendo preguntas sin repetirlo.", "ia")
 
     page.update()
 
