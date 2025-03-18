@@ -1,6 +1,6 @@
 import flet as ft
 from data_loader import cargar_datos
-from conversation import responder_pregunta  # Asegúrate de tener la importación correcta
+from conversation import responder_pregunta, normalizar_nombre  # Asegúrate de tener la importación correcta
 
 
 class AsistenteApp(ft.Column):
@@ -67,7 +67,8 @@ class AsistenteApp(ft.Column):
 
         # Detectamos automáticamente el nombre del paciente
         nombre_paciente = question.split()[-2] + " " + question.split()[-1]
-        paciente_id = self.pacientes_dict.get(nombre_paciente.lower())
+        nombre_paciente_normalizado = normalizar_nombre(nombre_paciente)
+        paciente_id = self.pacientes_dict.get(nombre_paciente_normalizado)
 
         # Procesamos la respuesta de la IA
         if paciente_id:
