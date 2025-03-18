@@ -1,23 +1,23 @@
 import flet as ft
 from data_loader import cargar_datos
-from conversation import responder_pregunta, normalizar_nombre  # Asegúrate de tener la importación correcta
+from conversation import responder_pregunta, normalizar_nombre
 
 
 class AsistenteApp(ft.Column):
     def __init__(self):
         super().__init__()
-        # Cargamos los datos una vez al inicio
         self.dataframes, self.pacientes_dict, self.nombres_originales = cargar_datos()
 
-        # Área de chat configurada para ser tipo chat
-        self.chat_display = ft.ListView(expand=True, spacing=10, padding=10)
+        # Área de chat con desplazamiento
+        self.chat_display = ft.ListView(expand=True, spacing=10, padding=10, auto_scroll=True)
 
         # Caja de texto estilizada
         self.user_input = ft.TextField(
             hint_text="Escribe tu pregunta aquí...",
             expand=True,
             bgcolor=ft.colors.BLUE_GREY_800,
-            color=ft.colors.WHITE
+            color=ft.colors.WHITE,
+            on_submit=self.handle_send  # Permite enviar con "Enter"
         )
 
         # Botón destacado
@@ -30,7 +30,13 @@ class AsistenteApp(ft.Column):
 
         # Estructura de la app
         self.controls = [
-            self.chat_display,
+            ft.Container(
+                content=self.chat_display,
+                expand=True,
+                border_radius=ft.border_radius.all(10),
+                border=ft.border.all(1, ft.colors.GREY_700),
+                padding=10
+            ),
             ft.Row(controls=[self.user_input, self.send_button]),
         ]
 
@@ -58,28 +64,40 @@ class AsistenteApp(ft.Column):
         self.chat_display.update()
 
     def handle_send(self, e):
-        question = self.user_input.value
-        if not question.strip():
+        question = self.user_input.value.strip()
+        if not question:
             return
 
-        # Agregar mensaje del médico a la derecha
+        # Agregar mensaje del médico
         self.add_message(f"Médico: {question}", "medico")
 
-        # Detectamos automáticamente el nombre del paciente
+        # Mostrar mensaje de "Cargando..."
+        loading_msg = ft.Container(
+            content=ft.Text("Asistente IA está procesando...", color=ft.colors.GREY_500, italic=True),
+            alignment=ft.alignment.center_left,
+            bgcolor=ft.colors.GREY_300,
+            padding=10,
+            border_radius=ft.border_radius.all(10),
+            margin=ft.margin.only(right=50)
+        )
+        self.chat_display.controls.append(loading_msg)
+        self.chat_display.update()
+
+        # Detectar paciente y procesar respuesta
         nombre_paciente = question.split()[-2] + " " + question.split()[-1]
         nombre_paciente_normalizado = normalizar_nombre(nombre_paciente)
         paciente_id = self.pacientes_dict.get(nombre_paciente_normalizado)
 
-        # Procesamos la respuesta de la IA
-        if paciente_id:
-            answer = responder_pregunta(question, paciente_id, self.dataframes, self.pacientes_dict)
-        else:
-            answer = f"No se encontró un paciente con el nombre '{nombre_paciente}'."
+        answer = responder_pregunta(question, paciente_id, self.dataframes, self.pacientes_dict) if paciente_id else f"No se encontró un paciente con el nombre '{nombre_paciente}'."
 
-        # Agregar respuesta de la IA a la izquierda
+        # Eliminar el mensaje de "Cargando..."
+        self.chat_display.controls.remove(loading_msg)
+        self.chat_display.update()
+
+        # Agregar respuesta de la IA
         self.add_message(f"Asistente IA: {answer}", "ia")
 
-        # Limpiamos el campo de entrada
+        # Limpiar la caja de texto
         self.user_input.value = ""
         self.user_input.update()
 
@@ -89,13 +107,12 @@ def main(page: ft.Page):
     page.bgcolor = ft.colors.BLUE_GREY_900
 
     app = AsistenteApp()
-    
-    # Aseguramos que la app se cargue antes de agregar los mensajes iniciales
+
     page.add(app)
 
-    # Mensaje inicial después de que la página esté cargada
+    # Mensaje inicial
     app.add_message("Datos cargados correctamente.", "ia")
-    
+
     page.update()
 
 
