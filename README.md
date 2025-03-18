@@ -63,6 +63,6 @@ python main.py
 
 🎨 Ejecución de la Interfaz Gráfica
 descargar FLET:  pip install flet
-abrir INTERFAZ: python3 interfaz_gui.py
+abrir INTERFAZ: python3 asistente_gui.py
 
 
