@@ -16,7 +16,7 @@ nlp = spacy.load("es_core_news_sm")
 memoria = []  # Lista para almacenar la conversación
 
 SINONIMOS = {
-    "medicacion": ["medicacion", "medicación", "medicinas", "fármacos", "tratamiento", "receta"],
+    "medicacion": ["medicacion", "medicación", "medicinas", "fármacos", "tratamiento", "receta", "medicaciones", "medicamentos"],
     "laboratorio": ["laboratorio", "análisis", "pruebas", "exámenes", "laboratorios iniciales", "lab"],
     "procedimientos": ["procedimientos", "intervenciones", "cirugías", "operaciones"],
     "notas": ["nota", "notas", "historial", "registros", "comentarios", "notas clínicas", "clínica", "anotaciones", "clinica"], 
