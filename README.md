@@ -33,7 +33,7 @@ El proyecto se ejecuta en **VSCode** y cuenta con el siguiente directorio raíz:
 - 🛠 **`utils.py`** → Funciones de utilidad para limpieza, formateo y extracción de palabras clave.  
 - 🚀 **`main.py`** → Archivo principal que gestiona la interacción con el usuario y coordina los módulos anteriores.  
 - 💬 **`interfaz_gui.py`** → Interfaz gráfica basada en Flet para visualizar los mensajes tipo WhatsApp.  
-🔗  **`api_client.py`**  → Concecta con la API
+- 🔗  **`api_client.py`**  → Conecta con la API
 
 ---
 
@@ -66,5 +66,10 @@ descargar FLET:  pip install flet
 ALMA: descargar pip install flet-desktop
 abrir INTERFAZ: python3 asistente_gui.py
 
+# Para hacer PULL: 
+git pull origin main
 
-
+# Para hacer PUSH:
+git add . 
+git commit -m "Descripción corta del cambio"
+git push origin main
