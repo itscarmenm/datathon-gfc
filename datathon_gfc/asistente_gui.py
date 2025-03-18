@@ -7,7 +7,7 @@ class AsistenteApp(ft.Column):
     def __init__(self):
         super().__init__()
         # Cargamos los datos una vez al inicio
-        self.dataframes, self.pacientes_dict = cargar_datos()
+        self.dataframes, self.pacientes_dict, self.nombres_originales = cargar_datos()
 
         # Área de chat configurada para ser tipo chat
         self.chat_display = ft.ListView(expand=True, spacing=10, padding=10)
