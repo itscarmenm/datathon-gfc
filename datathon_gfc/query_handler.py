@@ -102,14 +102,32 @@ def obtener_datos_paciente_lab(dataframes, paciente_id):
             return datos_paciente.to_string(index=False)
     return None
 
-def obtener_datos_paciente_notas(dataframes, paciente_id):
-    """Obtiene todas las notas de un paciente."""
+def obtener_datos_paciente_notas(dataframes, paciente_id, fecha=None):
+    """Obtiene todas las notas de un paciente, filtradas por fecha si se proporciona."""
     df = dataframes.get("notas")
-    if df is not None and not df.empty:
-        notas_paciente = df[df["PacienteID"] == paciente_id]["Nota"].tolist()
-        if notas_paciente:
-            return "\n".join(notas_paciente) # Unir las notas en un string
-    return None
+    
+    if df is None or df.empty:
+        return None
+
+    # Filtrar por PacienteID
+    df_paciente = df[df["PacienteID"] == paciente_id]
+
+    # Si se proporciona fecha, filtrar también por fecha específica
+    if fecha:
+        df_paciente = df_paciente[df_paciente["Fecha"] == fecha]
+
+    # Si después del filtrado no hay datos, devolver None
+    if df_paciente.empty:
+        return None
+
+    # Ordenar por fecha (asumiendo que la columna 'Fecha' tiene formato adecuado)
+    df_paciente = df_paciente.sort_values(by="Fecha")
+
+    # Unir notas en un solo string
+    notas = "\n".join(f"{row['Fecha']}: {row['Nota']}" for _, row in df_paciente.iterrows())
+    
+    return notas
+
 
 def obtener_datos_paciente_evolucion(dataframes, paciente_id):
     """Obtiene todos los datos de evolución de un paciente."""

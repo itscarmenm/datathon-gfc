@@ -65,7 +65,17 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
         respuesta = obtener_procedimientos(dataframes, paciente_id)
 
     elif categoria == "notas":
-        respuesta = obtener_notas(dataframes, paciente_id)
+        datos_notas = obtener_datos_paciente_notas(dataframes, paciente_id, fecha)
+
+        if datos_notas:
+            if fecha:
+                contexto_ia = f"Las notas médicas del paciente {nombre_paciente} el día {fecha} son:\n{datos_notas}\n\nResume la información de este día en un párrafo claro y conciso."
+            else:
+                contexto_ia = f"A continuación se presentan las notas médicas del paciente {nombre_paciente} a lo largo de su estancia:\n{datos_notas}\n\nGenera un resumen explicativo destacando los cambios en su estado y los eventos importantes."
+
+            respuesta = obtener_respuesta_api(contexto_ia)
+        else:
+            respuesta = f"No hay notas registradas para {nombre_paciente}" + (f" el {fecha}" if fecha else "") + "."
 
     elif categoria == "evolucion_resumen": # Usamos la nueva categoría
         datos_evolucion = obtener_datos_paciente_evolucion(dataframes, paciente_id)
