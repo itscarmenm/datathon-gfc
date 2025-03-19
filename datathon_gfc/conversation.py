@@ -132,14 +132,21 @@ def normalizar_nombre(nombre):
     return nombre.strip()
 
 def obtener_id_paciente_por_nombre(nombre_ingresado, pacientes_dict):
-    """Busca un paciente sin importar mayúsculas, minúsculas ni tildes."""
+    """Busca el ID del paciente sin importar mayúsculas, tildes o espacios."""
     nombre_ingresado = normalizar_nombre(nombre_ingresado)
 
-    return pacientes_dict.get(nombre_ingresado, None)  # Retorna el ID o None si no lo encuentra
+    for nombre, id_paciente in pacientes_dict.items():
+        if normalizar_nombre(nombre) == nombre_ingresado:
+            return id_paciente
 
-def obtener_nombre_paciente_por_id(paciente_id, nombres_originales):
+    return None  # No encontrado
+
+def obtener_nombre_paciente_por_id(paciente_id, pacientes_dict):
     """Obtiene el nombre original del paciente a partir de su ID."""
-    return nombres_originales.get(paciente_id)
+    for nombre, id_paciente in pacientes_dict.items():
+        if id_paciente == paciente_id:
+            return nombre  # Devuelve el nombre original sin normalizar
+    return None
 
 def generar_grafico_laboratorio(dataframes, paciente_id):
     """Genera un gráfico de barras con valores de laboratorio escalados para mejor visualización."""
