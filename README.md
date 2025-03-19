@@ -73,3 +73,7 @@ git pull origin main
 git add . 
 git commit -m "Descripción corta del cambio"
 git push origin main
+
+# Añadir paquetes al entorno para las gráficas
+pip install flet matplotlib
+pip install scikit-learn
