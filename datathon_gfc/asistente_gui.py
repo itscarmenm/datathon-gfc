@@ -4,17 +4,22 @@ from conversation import responder_pregunta, normalizar_nombre
 
 class AsistenteApp(ft.Column):
     def __init__(self):
-        super().__init__()
-        self.dataframes, self.pacientes_dict, self.nombres_originales = cargar_datos()
-        # Variable para guardar el paciente actual de la conversación
-        self.current_patient = None
+        # Al llamar a super().__init__(expand=True), indicamos que esta columna
+        # ocupará todo el espacio disponible en la ventana.
+        super().__init__(expand=True)
 
-        # Área de chat con desplazamiento habilitado manualmente
+        self.dataframes, self.pacientes_dict, self.nombres_originales = cargar_datos()
+        self.current_patient = None  # Paciente actual en la conversación
+
+        # Área de chat con desplazamiento habilitado
         self.chat_display = ft.ListView(
-            expand=True, spacing=10, padding=10, auto_scroll=True
+            expand=True,           # Permite que la lista se expanda
+            spacing=10,
+            padding=10,
+            auto_scroll=True
         )
 
-        # Caja de texto estilizada
+        # Campo de texto estilizado
         self.user_input = ft.TextField(
             hint_text="Escribe tu pregunta aquí...",
             expand=True,
@@ -23,7 +28,7 @@ class AsistenteApp(ft.Column):
             on_submit=self.handle_send
         )
 
-        # Botón destacado
+        # Botón "Enviar"
         self.send_button = ft.ElevatedButton(
             "Enviar",
             on_click=self.handle_send,
@@ -33,14 +38,15 @@ class AsistenteApp(ft.Column):
 
         # Estructura de la app
         self.controls = [
+            # Contenedor para la zona de chat
             ft.Container(
                 content=self.chat_display,
-                expand=True,
+                expand=True,  # Para que el contenedor se expanda
                 border_radius=ft.border_radius.all(10),
                 border=ft.border.all(1, ft.Colors.GREY_700),
                 padding=10,
-                height=400,  # 📌 Tamaño fijo para permitir el scroll
             ),
+            # Fila con el campo de texto y el botón
             ft.Row(controls=[self.user_input, self.send_button]),
         ]
 
@@ -104,28 +110,31 @@ class AsistenteApp(ft.Column):
         # Intentar extraer un nuevo nombre de paciente de la pregunta
         nombre_detectado = self.extraer_nombre_paciente(question)
         if nombre_detectado:
-            # Se actualiza el paciente actual
+            # Actualiza el paciente actual
             self.current_patient = nombre_detectado
             paciente_id = self.pacientes_dict[nombre_detectado]
         else:
-            # Si no se detecta un nombre, se usa el paciente actual del contexto
+            # Si no se detecta un nombre, se usa el paciente actual (si existe)
             if self.current_patient:
                 paciente_id = self.pacientes_dict[self.current_patient]
             else:
                 paciente_id = None
 
-        # Procesar respuesta basándonos en el paciente identificado
+        # Procesar la respuesta
         if paciente_id:
             answer = responder_pregunta(question, paciente_id, self.dataframes, self.pacientes_dict)
         else:
-            answer = "No se encontró un paciente en el contexto. Por favor, menciona el nombre del paciente (por ejemplo, 'juan perez')."
+            answer = (
+                "No se encontró un paciente en el contexto. "
+                "Por favor, menciona el nombre del paciente (por ejemplo, 'juan perez')."
+            )
 
         # Eliminar el mensaje de "Cargando..."
         self.chat_display.controls.remove(loading_msg)
         self.chat_display.update()
 
         # Agregar respuesta de la IA
-        self.add_message(f"Florence {answer}", "ia")
+        self.add_message(f"Florence: {answer}", "ia")
 
         # Limpiar la caja de texto
         self.user_input.value = ""
@@ -135,13 +144,20 @@ class AsistenteApp(ft.Column):
 def main(page: ft.Page):
     page.title = "Florence - Asistente Virtual Médico"
     page.bgcolor = ft.Colors.BLUE_GREY_900
+    # Aseguramos que la página se expanda para ocupar todo el espacio
+    page.vertical_alignment = "stretch"
+    page.horizontal_alignment = "stretch"
 
     app = AsistenteApp()
-
     page.add(app)
 
     # Mensaje inicial
-    app.add_message("Bienvenidx a Florence, tu asistente virtual médica. Puedes consultar datos de un paciente mencionando su nombre, y luego seguir haciendo preguntas sin repetirlo.", "ia")
+    app.add_message(
+        "Bienvenidx a Florence, tu asistente virtual médica. "
+        "Puedes consultar datos de un paciente mencionando su nombre, "
+        "y luego seguir haciendo preguntas sin repetirlo.",
+        "ia"
+    )
 
     page.update()
 
