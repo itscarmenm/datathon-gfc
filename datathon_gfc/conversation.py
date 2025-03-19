@@ -85,8 +85,6 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
         else:
             respuesta = "No se encontraron datos de evolución para generar un resumen del paciente."
 
-    elif categoria == "evolucion": # Mantener la funcionalidad anterior si la necesitas
-        respuesta = obtener_evolucion(dataframes, paciente_id)
 
     elif categoria == "temperatura":
         if fecha:

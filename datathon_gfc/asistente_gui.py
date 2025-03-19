@@ -92,6 +92,14 @@ class AsistenteApp(ft.Column):
         if not question:
             return
 
+        # Si el usuario escribe "otro paciente", se reinicia el paciente actual.
+        if question.lower() == "otro paciente":
+            self.current_patient = None
+            self.add_message("Florence: Listo, ahora indícame el nombre del nuevo paciente.", "ia")
+            self.user_input.value = ""
+            self.user_input.update()
+            return
+
         # Agregar mensaje del médico
         self.add_message(f"Médico: {question}", "medico")
 
