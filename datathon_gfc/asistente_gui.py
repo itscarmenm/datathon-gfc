@@ -2,7 +2,7 @@ import flet as ft
 import matplotlib.pyplot as plt
 from flet.matplotlib_chart import MatplotlibChart
 from data_loader import cargar_datos
-from conversation import responder_pregunta, normalizar_nombre, generar_grafico_laboratorio
+from conversation import responder_pregunta, normalizar_nombre, generar_grafico_evolucion
 
 class AsistenteApp(ft.Column):
     def __init__(self):
@@ -109,15 +109,15 @@ class AsistenteApp(ft.Column):
             paciente_id = self.pacientes_dict.get(self.current_patient, None)
 
         if any(word in question.lower() for word in ["gráfica", "grafica"]) and paciente_id:
-            chart = generar_grafico_laboratorio(self.dataframes, paciente_id)
+            chart = generar_grafico_evolucion(self.dataframes, paciente_id)
             if chart:
                 self.chat_display.controls.append(
                     ft.Row(  # 👈 Usamos Row para alinear a la izquierda
                         [
                             ft.Container(
                                 content=chart,
-                                width=500,  # 👈 Reduce el ancho para que no ocupe todo
-                                height=350,  # 👈 Ajusta el alto si es necesario
+                                width=1300,  # 👈 Reduce el ancho para que no ocupe todo
+                                height=650,  # 👈 Ajusta el alto si es necesario
                                 bgcolor=ft.Colors.LIGHT_BLUE_100,
                                 padding=10,
                                 border_radius=ft.border_radius.all(10),

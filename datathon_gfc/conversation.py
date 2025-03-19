@@ -18,6 +18,7 @@ from flet.matplotlib_chart import MatplotlibChart
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler  # Para normalizar los valores
 from sklearn.preprocessing import StandardScaler
+import matplotlib.ticker as ticker
 
 
 nlp = spacy.load("es_core_news_sm")
@@ -89,6 +90,10 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
             respuesta = f"No hay notas registradas para {nombre_paciente}" + (f" el {fecha}" if fecha else "") + "."
 
     elif categoria == "evolucion_resumen": # Usamos la nueva categoría
+
+        if "grafica" in pregunta or "gráfico" in pregunta:  # Si el usuario pidió un gráfico
+            return generar_grafico_evolucion(dataframes, paciente_id)
+
         datos_evolucion = obtener_datos_paciente_evolucion(dataframes, paciente_id)
         if datos_evolucion:
             contexto_ia = f"Analiza los siguientes datos de evolución del paciente {nombre_paciente}:\n{datos_evolucion}\n\nProporciona un resumen conciso del estado del paciente y justifica tu análisis basándote en los datos proporcionados."
@@ -162,6 +167,47 @@ def generar_grafico_laboratorio(dataframes, paciente_id):
     ax.tick_params(axis="x", rotation=45, labelsize=7)
     ax.tick_params(axis="y", labelsize=7)
     ax.grid(axis="y", linestyle="--", alpha=0.6)
+
+    plt.tight_layout()
+
+    return MatplotlibChart(fig, expand=False)
+
+def generar_grafico_evolucion(dataframes, paciente_id):
+    """Genera un gráfico de barras agrupadas con la evolución del paciente."""
+    df_evolucion = dataframes.get("evolucion", None)
+    
+    if df_evolucion is None or df_evolucion.empty:
+        return "No hay datos de evolución disponibles para este paciente."
+    
+    # Filtrar por paciente y seleccionar las columnas relevantes
+    df_paciente = df_evolucion[df_evolucion["PacienteID"] == paciente_id]
+    columnas_interes = ["Fecha", "PresionSistolica", "PresionDiastolica", "FrecuenciaCardiaca",
+                        "Temperatura", "FrecuenciaRespiratoria", "SaturacionOxigeno", "Glucosa"]
+    df_paciente = df_paciente[columnas_interes]
+    
+    if df_paciente.empty:
+        return "Este paciente no tiene registros de evolución."
+    
+    df_paciente.set_index("Fecha", inplace=True)
+    df_paciente.sort_index(inplace=True)
+
+    # Crear gráfico con barras más anchas y separadas
+    fig, ax = plt.subplots(figsize=(12, 6))  # Aumentamos el tamaño del gráfico
+    df_paciente.plot(kind="bar", ax=ax, edgecolor="black", colormap="tab10", width=0.7)
+
+    ax.set_xlabel("Fecha", fontsize=10)
+    ax.set_ylabel("Valor", fontsize=10)
+    ax.set_title("Evolución de Parámetros Clínicos", fontsize=12)
+    
+    # Reducir la cantidad de fechas mostradas en el eje X para que no se amontonen
+    ax.xaxis.set_major_locator(ticker.MaxNLocator(nbins=8))  # Máximo 8 etiquetas en X
+    ax.tick_params(axis="x", rotation=45, labelsize=9, pad=5)
+    ax.tick_params(axis="y", labelsize=9)
+    
+    ax.grid(axis="y", linestyle="--", alpha=0.6)
+
+    # Mover la leyenda fuera de la gráfica
+    ax.legend(title="Parámetros", bbox_to_anchor=(1.05, 1), loc="upper left")
 
     plt.tight_layout()
 
