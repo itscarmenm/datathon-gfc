@@ -2,7 +2,7 @@ import flet as ft
 import matplotlib.pyplot as plt
 from flet.matplotlib_chart import MatplotlibChart
 from data_loader import cargar_datos
-from conversation import responder_pregunta, normalizar_nombre
+from conversation import responder_pregunta, normalizar_nombre, generar_grafico_laboratorio
 
 class AsistenteApp(ft.Column):
     def __init__(self):
@@ -75,30 +75,6 @@ class AsistenteApp(ft.Column):
         self.chat_display.controls.append(msg)
         self.chat_display.update()
 
-    def generar_grafico_laboratorio(self, paciente_id):
-        df_lab = self.dataframes.get("lab", None)
-
-        if df_lab is None or df_lab.empty:
-            return None
-
-        df_paciente = df_lab[df_lab["PacienteID"] == paciente_id]
-        if df_paciente.empty:
-            return None
-
-        fig, ax = plt.subplots(figsize=(6, 4))
-
-        for columna in ["Glucosa", "pH", "Creatinina", "Leucocitos", "Sodio", "Potasio"]:
-            if columna in df_paciente.columns:
-                ax.plot(df_paciente.index, df_paciente[columna], marker='o', linestyle='-', label=columna)
-
-        ax.set_xlabel("Registro")
-        ax.set_ylabel("Valor")
-        ax.set_title("Evolución de valores de laboratorio")
-        ax.legend()
-        ax.grid()
-        plt.xticks(rotation=45)
-
-        return MatplotlibChart(fig)
 
     def handle_send(self, e):
         question = self.user_input.value.strip()
@@ -133,9 +109,23 @@ class AsistenteApp(ft.Column):
             paciente_id = self.pacientes_dict.get(self.current_patient, None)
 
         if any(word in question.lower() for word in ["gráfica", "grafica"]) and paciente_id:
-            chart = self.generar_grafico_laboratorio(paciente_id)
+            chart = generar_grafico_laboratorio(self.dataframes, paciente_id)
             if chart:
-                self.chat_display.controls.append(chart)
+                self.chat_display.controls.append(
+                    ft.Row(  # 👈 Usamos Row para alinear a la izquierda
+                        [
+                            ft.Container(
+                                content=chart,
+                                width=500,  # 👈 Reduce el ancho para que no ocupe todo
+                                height=350,  # 👈 Ajusta el alto si es necesario
+                                bgcolor=ft.Colors.LIGHT_BLUE_100,
+                                padding=10,
+                                border_radius=ft.border_radius.all(10),
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.START,  # 👈 Asegura que quede a la izquierda
+                    )
+                )
                 self.chat_display.update()
                 answer = "Aquí tienes la gráfica de laboratorio del paciente."
             else:
