@@ -54,7 +54,12 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
             respuesta = "No hay información de medicación para este paciente."
 
     elif categoria == "laboratorio":
-        respuesta = obtener_laboratorio(dataframes, paciente_id)
+        datos_lab = obtener_datos_paciente_lab(dataframes, paciente_id)
+        if datos_lab:
+            contexto_ia = f"Los valores de laboratorio iniciales del paciente {nombre_paciente} son:\n{datos_lab}\n\nExplica brevemente qué indican estos valores y si presentan alguna anomalía."
+            respuesta = obtener_respuesta_api(contexto_ia)
+        else:
+            respuesta = "No se encontraron resultados de laboratorio para este paciente."
 
     elif categoria == "procedimientos":
         respuesta = obtener_procedimientos(dataframes, paciente_id)
