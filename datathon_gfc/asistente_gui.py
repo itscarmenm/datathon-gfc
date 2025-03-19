@@ -126,7 +126,7 @@ class AsistenteApp(ft.Column):
         else:
             answer = (
                 "No se encontró un paciente en el contexto. "
-                "Por favor, menciona el nombre del paciente (por ejemplo, 'juan perez')."
+                "Por favor, menciona el nombre del paciente (por ejemplo, 'Juan Pérez')."
             )
 
         # Eliminar el mensaje de "Cargando..."
@@ -153,9 +153,8 @@ def main(page: ft.Page):
 
     # Mensaje inicial
     app.add_message(
-        "Bienvenidx a Florence, tu asistente virtual médica. "
-        "Puedes consultar datos de un paciente mencionando su nombre, "
-        "y luego seguir haciendo preguntas sin repetirlo.",
+        "Bienvenidx a Florence, tu asistente médica virtual 😊. "
+        "Puedes consultar datos de un paciente mencionando su nombre!🩺", 
         "ia"
     )
 
