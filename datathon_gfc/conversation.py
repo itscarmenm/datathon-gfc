@@ -11,6 +11,12 @@ from query_handler import (
 )
 from utils import normalizar_texto, extraer_palabras_clave, extraer_fecha_hora
 from api_client import obtener_respuesta_api
+import matplotlib
+matplotlib.use("Agg")  # Evita problemas con hilos secundarios
+import matplotlib.pyplot as plt
+from flet.matplotlib_chart import MatplotlibChart
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler  # Para normalizar los valores
 
 nlp = spacy.load("es_core_news_sm")
 memoria = []  # Lista para almacenar la conversación
@@ -54,6 +60,9 @@ def responder_pregunta(pregunta, paciente_id, dataframes, pacientes_dict):
             respuesta = "No hay información de medicación para este paciente."
 
     elif categoria == "laboratorio":
+        if "grafica" in pregunta or "gráfico" in pregunta:  # Si el usuario pidió un gráfico
+            return generar_grafico_laboratorio(dataframes, paciente_id)
+        
         datos_lab = obtener_datos_paciente_lab(dataframes, paciente_id)
         if datos_lab:
             contexto_ia = f"Los valores de laboratorio iniciales del paciente {nombre_paciente} son:\n{datos_lab}\n\nExplica brevemente qué indican estos valores y si presentan alguna anomalía."
@@ -125,4 +134,37 @@ def obtener_nombre_paciente_por_id(paciente_id, nombres_originales):
     """Obtiene el nombre original del paciente a partir de su ID."""
     return nombres_originales.get(paciente_id)
 
+def generar_grafico_laboratorio(dataframes, paciente_id):
+    """Genera un gráfico de evolución de múltiples valores de laboratorio del paciente."""
+    df_lab = dataframes.get("lab", None)
 
+    if df_lab is None or df_lab.empty:
+        return "No hay datos de laboratorio disponibles para este paciente."
+
+    # Filtrar por paciente
+    df_paciente = df_lab[df_lab["PacienteID"] == paciente_id]
+    
+    if df_paciente.empty:
+        return "Este paciente no tiene registros de laboratorio."
+
+    # Eliminar la columna 'PacienteID' y convertir valores a numéricos
+    df_paciente = df_paciente.drop(columns=["PacienteID"]).apply(pd.to_numeric, errors="coerce")
+
+    # Normalizar los valores para que sean comparables
+    scaler = MinMaxScaler()
+    df_normalizado = pd.DataFrame(scaler.fit_transform(df_paciente), columns=df_paciente.columns)
+
+    # Crear la gráfica
+    fig, ax = plt.subplots(figsize=(10, 5))
+    for columna in df_normalizado.columns:
+        ax.plot(df_normalizado.index, df_normalizado[columna], marker='o', linestyle='-', label=columna)
+
+    ax.set_xlabel("Tiempo (mediciones ordenadas)")
+    ax.set_ylabel("Valor Normalizado")
+    ax.set_title("Evolución de Variables de Laboratorio del Paciente")
+    ax.legend(loc="upper right")
+    ax.grid()
+
+    # Convertir a gráfico de Flet
+    chart = MatplotlibChart(fig)
+    return chart
